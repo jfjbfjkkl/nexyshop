@@ -305,7 +305,7 @@ function ResponsiveHome() {
               <span className="hero-brand-sub">Shop</span>
             </h1>
             <p>
-              <span className="hero-copy-desktop">Recharge tes jeux favoris et obtiens tes cartes cadeaux instantanement, en toute securite.</span>
+              <span className="hero-copy-desktop">Recharge tes jeux favoris et obtiens tes cartes cadeaux instantanement, en toute securite.a</span>
               <span className="hero-copy-mobile">Recharger instantanément en toute sécurité.</span>
             </p>
           </div>
