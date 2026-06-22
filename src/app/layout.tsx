@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   title: "NEXY SHOP — Top Up tes jeux en un clic",
   description: "Recharges sécurisées, livraison instantanée, au meilleur prix. Free Fire, Mobile Legends, PUBG Mobile et bien plus.",
   keywords: "top up, recharge, free fire, mobile legends, pubg, cartes cadeaux, gaming",
+  icons: {
+    icon: "/image copy 15.png",
+    shortcut: "/image copy 15.png",
+    apple: "/image copy 15.png",
+  },
 };
 
 export default function RootLayout({

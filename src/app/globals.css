@@ -9791,7 +9791,7 @@ main.product-page-content {
 
   .nexy-home .mobile-hero-search {
     position: relative;
-    z-index: 2;
+    z-index: 1;
     margin-top: calc(clamp(24rem, 110vw, 34rem) + 1.35rem) !important;
   }
 
@@ -9842,7 +9842,7 @@ main.product-page-content {
 
   .nexy-home .mobile-hero-search {
     position: relative;
-    z-index: 2;
+    z-index: 1;
     margin-top: 1rem !important;
   }
 }
@@ -10316,7 +10316,7 @@ main.product-page-content {
 
 @media (max-width: 899px) {
   .nexy-home .mobile-hero-search {
-    margin-top: -2.35rem !important;
+    margin-top: 1.15rem !important;
   }
 
   .nexy-home .desktop-grid {
@@ -13205,7 +13205,7 @@ main.product-page-content {
     margin: 0 0 1.15rem;
     padding: 0;
     border: 0;
-    border-bottom: 1px solid rgba(180, 221, 255, .14);
+    border-bottom: 0;
     border-radius: 0;
     background: transparent;
     box-shadow: none;
@@ -13229,13 +13229,7 @@ main.product-page-content {
   }
 
   .account-mobile-switch button.is-active::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1px;
-    height: 2px;
-    background: #45bfff;
+    content: none;
   }
 
   .account-card {
@@ -13359,7 +13353,7 @@ main.product-page-content {
 @media (max-width: 899px) {
   .nexy-home .mobile-hero-search {
     position: relative !important;
-    z-index: 500 !important;
+    z-index: 3 !important;
     isolation: isolate;
   }
 
@@ -13370,7 +13364,7 @@ main.product-page-content {
 
   .nexy-home .mobile-hero-search .desktop-search-panel {
     position: absolute !important;
-    z-index: 510 !important;
+    z-index: 12 !important;
     top: calc(100% + .5rem) !important;
     left: 0 !important;
     right: 0 !important;

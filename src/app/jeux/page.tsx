@@ -13,7 +13,7 @@ const merchantGames = [
     name: "Roblox",
     currency: "Robux",
     banner: "/roblox-banner.png",
-    logo: "/roblox-logo.png",
+    logo: "/image copy 15.png",
   },
 ];
 

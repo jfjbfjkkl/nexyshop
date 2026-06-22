@@ -169,7 +169,7 @@ export default function SiteNavbar({ activeView = "all", variant = "default", on
       <aside id="mobile-main-menu" className={`mobile-main-menu ${menuOpen ? "is-open" : ""}`} aria-hidden={!menuOpen}>
         <div className="mobile-menu-brand-card">
           <span className="mobile-menu-logo-frame">
-            <Image src="/nexyshop-logo.png" alt="" fill sizes="48px" />
+            <Image src="/image copy 15.png" alt="" fill sizes="48px" />
           </span>
           <span>
             <strong>NEXY SHOP</strong>
