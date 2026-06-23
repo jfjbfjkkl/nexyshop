@@ -61,9 +61,16 @@ export default function Navbar() {
 
           <div className="hidden items-center gap-5 lg:flex">
             <button
+              aria-label="Notifications"
+              onClick={() => router.push("/notifications")}
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-white/86 transition hover:-translate-y-0.5 hover:text-[#72a9ff]"
+            >
+              <BellIcon />
+            </button>
+            <button
               aria-label="Panier"
               onClick={() => router.push("/panier")}
-              className="relative text-white/86 transition hover:-translate-y-0.5 hover:text-[#72a9ff]"
+              className="relative flex h-10 w-10 items-center justify-center rounded-xl text-white/86 transition hover:-translate-y-0.5 hover:text-[#72a9ff]"
             >
               <CartIcon />
               {totalItems > 0 && (
@@ -75,7 +82,7 @@ export default function Navbar() {
             <button
               aria-label="Compte"
               onClick={() => router.push("/compte")}
-              className="text-white/86 transition hover:-translate-y-0.5 hover:text-[#72a9ff]"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-white/86 transition hover:-translate-y-0.5 hover:text-[#72a9ff]"
             >
               <AccountIcon />
             </button>
@@ -110,6 +117,13 @@ export default function Navbar() {
                   {link.label}
                 </a>
               ))}
+              <a
+                href="/notifications"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-xl px-4 py-3 text-sm font-bold text-white hover:bg-white/8"
+              >
+                Notifications
+              </a>
               <a
                 href="/panier"
                 onClick={() => setMobileOpen(false)}
@@ -147,9 +161,18 @@ function CartIcon() {
 
 function AccountIcon() {
   return (
-    <svg width="23" height="23" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
       <circle cx="12" cy="8" r="4" />
       <path d="M4.5 21a7.5 7.5 0 0 1 15 0" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 21h4" strokeLinecap="round" />
     </svg>
   );
 }

@@ -146,9 +146,9 @@ export default function SiteNavbar({ activeView = "all", variant = "default", on
           <span>Menu</span>
         </button>
         <div className="mobile-transparent-actions" aria-label="Actions rapides">
-          <button type="button" aria-label="Notifications">
+          <Link href="/notifications" aria-label="Notifications">
             <BellIcon />
-          </button>
+          </Link>
           <button type="button" aria-label="Panier" onClick={() => setCartOpen(true)}>
             <CartIcon />
             {cartCount > 0 && <span>{cartCount}</span>}
@@ -283,6 +283,7 @@ export default function SiteNavbar({ activeView = "all", variant = "default", on
             </div>
           )}
         </div>
+        <Link className="desktop-icon-button" href="/notifications" aria-label="Notifications"><BellIcon /></Link>
         <button className="desktop-icon-button" type="button" aria-label="Ouvrir le panier" onClick={() => setCartOpen(true)}>
           <CartIcon />
           {cartCount > 0 && <span>{cartCount}</span>}
