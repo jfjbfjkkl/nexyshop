@@ -2711,12 +2711,12 @@ textarea {
   }
 
   .desktop-shell {
-    padding: 6.48rem clamp(1.55rem, 3vw, 3.2rem) 0;
+    padding: 6.28rem clamp(1.55rem, 3vw, 3.2rem) 0;
     background: transparent;
   }
 
   .nexy-shop-page .desktop-hero {
-    margin-top: 0;
+    margin-top: -2px;
   }
 
   .desktop-nav {
