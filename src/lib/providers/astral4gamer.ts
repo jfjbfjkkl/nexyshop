@@ -3,7 +3,7 @@ import "server-only";
 import { getAstralConfig } from "@/lib/env";
 
 type AstralOrderPayload = {
-  product_id: number;
+  product_id: number | string;
   quantity: number;
   partner_reference: string;
   data: {
@@ -36,8 +36,8 @@ async function astralFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return json as T;
 }
 
-export function listAstralProducts() {
-  return astralFetch<unknown>("/products", { method: "GET" });
+export function listAstralProducts(page = 1) {
+  return astralFetch<unknown>(`/products?page=${page}`, { method: "GET" });
 }
 
 export function getAstralBalance() {

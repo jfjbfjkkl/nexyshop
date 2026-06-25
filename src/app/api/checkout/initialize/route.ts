@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { resolveAstralProductId, resolveCheckoutCart } from "@/lib/catalog";
+import { resolveAstralProductId, resolveCheckoutCartFromAstral } from "@/lib/catalog";
 import { getAppUrl } from "@/lib/env";
 import { storeInitializedOrder } from "@/lib/fulfillment";
 import { createOrderToken } from "@/lib/order-token";
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as CheckoutPayload;
     const customer = validateCustomer(body.customer);
     const currency = body.currency?.trim().toUpperCase() || "EUR";
-    const { lines, amount } = resolveCheckoutCart(body.cart);
+    const { lines, amount } = await resolveCheckoutCartFromAstral(body.cart);
     const orderId = randomUUID();
 
     const items = lines.map((line, index) => ({

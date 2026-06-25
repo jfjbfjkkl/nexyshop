@@ -93,6 +93,7 @@ export default function ProductDetailPage({
   similarGames = [],
 }: ProductDetailPageProps) {
  const [checkoutFieldsVisible, setCheckoutFieldsVisible] = useState(false);
+ const similarProductBasePath = activeView === "cards" ? "/cartes" : "/jeux";
 
 const [checkoutAttempted, setCheckoutAttempted] = useState(false);
 
@@ -523,7 +524,7 @@ const [customer, setCustomer] = useState<CheckoutCustomerForm>({
             </div>
 
             <Link
-              href={`/jeux/${game.slug}`}
+              href={`${similarProductBasePath}/${game.slug}`}
               className="shrink-0 rounded-full bg-[#edf4ff] px-4 py-2.5 text-[10px] font-black text-[#1463FF] transition hover:bg-[#1463FF] hover:text-white sm:text-[11px]"
             >
               Voir

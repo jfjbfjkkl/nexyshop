@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getAstralCatalog } from "@/lib/astral-catalog";
 import { games, giftCards } from "@/lib/data";
 import { getAstralConfig } from "@/lib/env";
 import type { CartDeliveryData, CartItem, ProductType, ResolvedCheckoutLine } from "@/lib/commerce";
@@ -63,6 +64,22 @@ function resolveGiftCardPrice(slug: string, denomination: string) {
 
 export function resolveCheckoutLine(item: CartItem): ResolvedCheckoutLine {
   const quantity = Number.isFinite(item.quantity) ? Math.max(1, Math.floor(item.quantity)) : 1;
+
+  if (item.providerProductId) {
+    return {
+      id: item.id,
+      slug: item.productId,
+      providerProductId: item.providerProductId,
+      name: item.name,
+      type: item.type,
+      denomination: item.denomination,
+      quantity,
+      unitPrice: roundPrice(item.price),
+      lineTotal: roundPrice(item.price * quantity),
+      delivery: item.delivery,
+    };
+  }
+
   const priceSource = item.type === "game"
     ? resolveGamePrice(item.productId, item.denomination, item.delivery)
     : resolveGiftCardPrice(item.productId, item.denomination);
@@ -91,7 +108,56 @@ export function resolveCheckoutCart(cart: CartItem[]) {
   return { lines, amount };
 }
 
+export async function resolveCheckoutLineFromAstral(item: CartItem): Promise<ResolvedCheckoutLine> {
+  const quantity = Number.isFinite(item.quantity) ? Math.max(1, Math.floor(item.quantity)) : 1;
+  const catalog = await getAstralCatalog();
+  const product = catalog.find((entry) => entry.slug === item.productId);
+
+  if (!product) {
+    if (item.providerProductId) return resolveCheckoutLine(item);
+    throw new Error(`Unknown Astral product: ${item.productId}`);
+  }
+
+  const selectedDenomination = product.denominations.find(
+    (entry) => normalizeText(entry.label) === normalizeText(item.denomination),
+  );
+
+  if (!selectedDenomination) {
+    throw new Error(`Unknown Astral denomination for ${item.productId}: ${item.denomination}`);
+  }
+
+  if (product.requiresUid && !item.delivery?.playerId?.trim()) {
+    throw new Error(`Missing player ID for ${item.productId}`);
+  }
+
+  return {
+    id: item.id,
+    slug: product.slug,
+    providerProductId: selectedDenomination.providerProductId,
+    name: product.name,
+    type: product.type,
+    denomination: selectedDenomination.label,
+    quantity,
+    unitPrice: selectedDenomination.price,
+    lineTotal: roundPrice(selectedDenomination.price * quantity),
+    delivery: item.delivery,
+  };
+}
+
+export async function resolveCheckoutCartFromAstral(cart: CartItem[]) {
+  if (!Array.isArray(cart) || cart.length === 0) {
+    throw new Error("Your cart is empty.");
+  }
+
+  const lines = await Promise.all(cart.map(resolveCheckoutLineFromAstral));
+  const amount = roundPrice(lines.reduce((sum, line) => sum + line.lineTotal, 0));
+
+  return { lines, amount };
+}
+
 export function resolveAstralProductId(line: ResolvedCheckoutLine) {
+  if (line.providerProductId) return line.providerProductId;
+
   const { productMap } = getAstralConfig();
   const match = productMap.find((entry) => {
     if (entry.type !== line.type) return false;
