@@ -178,10 +178,6 @@ export default function GameDetailPage() {
     window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
   }
 
-  function pushToCart() {
-    return pushSelectedPackToCart(selectedDenomination);
-  }
-
   function pushSelectedPackToCart(denominationIndex: number) {
     if (!canPurchase) return false;
 
@@ -505,18 +501,37 @@ export default function GameDetailPage() {
         </div>
       </section>
 
-      <section className="mx-auto grid w-full max-w-[1220px] gap-4 px-4 pb-8 sm:grid-cols-2 sm:gap-3 sm:px-6 sm:pb-10 lg:grid-cols-3 lg:px-10">
+      <section className="mx-auto grid w-full max-w-[1220px] gap-4 px-4 pb-8 sm:grid-cols-2 sm:gap-4 sm:px-6 sm:pb-10 lg:grid-cols-3 lg:px-10">
         {[...similarGames, ...recentGames].slice(0, 3).map((entry) => (
           <Link
             key={entry.slug}
             href={`/jeux/${entry.slug}`}
-            className="group rounded-[1rem] border border-[#d8e6ff] bg-white p-3.5 shadow-[0_8px_22px_rgba(9,34,88,0.06)] transition hover:-translate-y-0.5 hover:border-[#1463ff]/35 sm:rounded-2xl sm:p-4 sm:shadow-[0_10px_28px_rgba(9,34,88,0.06)]"
+            className="group overflow-hidden rounded-[1rem] border border-[#d8e6ff] bg-white p-3 shadow-[0_8px_22px_rgba(9,34,88,0.06)] transition hover:-translate-y-0.5 hover:border-[#1463ff]/35 sm:rounded-2xl sm:p-3.5 sm:shadow-[0_10px_28px_rgba(9,34,88,0.06)]"
           >
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#f3f8ff] text-sm font-black text-[#1463ff] sm:h-11 sm:w-11">{entry.logo}</span>
-              <div className="min-w-0">
-                <p className="truncate text-[13px] font-black text-[#102042] sm:text-sm">{entry.name}</p>
-                <p className="text-[11px] font-bold text-[#607396] sm:text-xs">{entry.denominations.length} offres disponibles</p>
+            <div className="relative aspect-[16/8.5] min-h-[98px] overflow-hidden rounded-[0.85rem] bg-[#f3f8ff] sm:min-h-[118px] sm:rounded-[1rem]">
+              {entry.image ? (
+                <Image
+                  src={entry.image}
+                  alt={entry.name}
+                  fill
+                  sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover transition duration-500 group-hover:scale-[1.04]"
+                />
+              ) : (
+                <div className="grid h-full w-full place-items-center text-2xl font-black text-white" style={{ background: entry.bg }}>
+                  {entry.logo}
+                </div>
+              )}
+            </div>
+            <div className="min-h-[82px] px-1.5 pb-1.5 pt-4 sm:min-h-[92px] sm:px-2 sm:pb-2 sm:pt-4">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#f3f8ff] text-sm font-black text-[#1463ff] shadow-[0_8px_18px_rgba(9,34,88,0.07)] sm:h-11 sm:w-11">
+                  {entry.logo}
+                </span>
+                <div className="min-w-0 pt-0.5">
+                  <p className="truncate text-sm font-black leading-5 text-[#102042] sm:text-[15px]">{entry.name}</p>
+                  <p className="mt-1 text-[12px] font-bold leading-5 text-[#607396] sm:text-[13px]">{entry.denominations.length} offres disponibles</p>
+                </div>
               </div>
             </div>
           </Link>

@@ -14,14 +14,15 @@ export default function MobileBackButton() {
     if (clicking) return;
 
     setClicking(true);
-    window.setTimeout(() => {
-      if (window.history.length > 1) {
-        router.back();
-        return;
-      }
+    const historyIndex = window.history.state && typeof window.history.state.idx === "number" ? window.history.state.idx : 0;
 
+    if (historyIndex > 0 || document.referrer) {
+      router.back();
+    } else {
       router.push("/");
-    }, 170);
+    }
+
+    window.setTimeout(() => setClicking(false), 320);
   };
 
   return (

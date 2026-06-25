@@ -11172,9 +11172,11 @@ main.product-page-content {
     box-shadow:
       0 .42rem .95rem rgba(0, 8, 28, .22),
       inset 0 1px 0 rgba(255, 255, 255, .1);
-    animation: mobile-back-float 1.65s ease-in-out infinite;
+    animation: none;
     appearance: none;
     cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
 
