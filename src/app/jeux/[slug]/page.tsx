@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ProductDetailPage from "@/components/ProductDetailPage";
 import SiteNavbar from "@/components/SiteNavbar";
-import { getGame } from "@/lib/data";
+import { games, getGame, type Game } from "@/lib/data";
 import { trackProductEvent } from "@/lib/popularity";
 import { useCartStore } from "@/lib/store";
 
@@ -15,6 +15,49 @@ function resolveCategory(slug: string) {
   if (["genshin-impact"].includes(slug)) return "RPG";
   if (["fc-mobile"].includes(slug)) return "Sport";
   return "Action";
+}
+
+const gameGroups = [
+  ["free-fire", "pubg-mobile", "fortnite", "blood-strike", "call-of-duty"],
+  ["mobile-legends", "honor-of-kings", "brawl-stars"],
+  ["genshin-impact", "roblox"],
+  ["fc-mobile"],
+];
+
+function tokenize(value: string) {
+  return value
+    .toLowerCase()
+    .split(/[\s:-]+/)
+    .filter((token) => token.length > 2);
+}
+
+function resolveSimilarGames(currentGame: Game) {
+  const currentCategory = resolveCategory(currentGame.slug);
+  const currentTokens = tokenize(currentGame.name);
+  const currentGroup = gameGroups.find((group) => group.includes(currentGame.slug));
+
+  return games
+    .filter((entry) => entry.slug !== currentGame.slug)
+    .map((entry) => {
+      const entryName = entry.name.toLowerCase();
+      const sameCategory = resolveCategory(entry.slug) === currentCategory;
+      const sameGroup = currentGroup?.includes(entry.slug) ?? false;
+      const matchingName = currentTokens.some((token) => entryName.includes(token));
+      const score = (sameGroup ? 6 : 0) + (sameCategory ? 4 : 0) + (matchingName ? 2 : 0);
+
+      return { entry, score };
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name))
+    .slice(0, 3)
+    .map(({ entry }) => ({
+      slug: entry.slug,
+      name: entry.name,
+      image: entry.image,
+      logo: entry.logo,
+      currency: entry.currency,
+      background: entry.bg,
+    }));
 }
 
 export default function GameDetailPage() {
@@ -101,6 +144,8 @@ export default function GameDetailPage() {
     router.push("/panier");
   };
 
+  const similarGames = resolveSimilarGames(game);
+
  return (
   <div className="pt-12 sm:pt-16 lg:pt-20">
     <ProductDetailPage
@@ -126,6 +171,7 @@ export default function GameDetailPage() {
       selectedRegion={selectedRegion}
       onRegionChange={setSelectedRegion}
       selectedRegionHelper={region.helper}
+      similarGames={similarGames}
     />
   </div>
 );

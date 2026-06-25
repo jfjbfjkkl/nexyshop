@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import SiteNavbar, { type NavbarView } from "@/components/SiteNavbar";
 
 type Offer = {
@@ -23,6 +24,15 @@ type CheckoutCustomerForm = {
   email: string;
   phone: string;
   playerId: string;
+};
+
+type SimilarGame = {
+  slug: string;
+  name: string;
+  image?: string;
+  logo: string;
+  currency: string;
+  background: string;
 };
 
 type ProductDetailPageProps = {
@@ -48,6 +58,7 @@ type ProductDetailPageProps = {
   selectedRegion?: number;
   onRegionChange?: (index: number) => void;
   selectedRegionHelper?: string;
+  similarGames?: SimilarGame[];
 };
 
 const benefitCards = [
@@ -79,58 +90,65 @@ export default function ProductDetailPage({
   selectedRegion = 0,
   onRegionChange,
   selectedRegionHelper,
+  similarGames = [],
 }: ProductDetailPageProps) {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [customer, setCustomer] = useState<CheckoutCustomerForm>({
-    name: "",
-    email: "",
-    phone: "",
-    playerId,
-  });
+ const [checkoutFieldsVisible, setCheckoutFieldsVisible] = useState(false);
+
+const [checkoutAttempted, setCheckoutAttempted] = useState(false);
+
+const [customer, setCustomer] = useState<CheckoutCustomerForm>({
+  name: "",
+  email: "",
+  phone: "",
+  playerId,
+});
 
   const activeOffer = offers[selectedOffer] ?? offers[0];
-
-  useEffect(() => {
-    setCustomer((current) => ({ ...current, playerId }));
-  }, [playerId]);
-
-  const syncPlayerIdAndOpenModal = () => {
-    setModalOpen(true);
-  };
+  const normalizedEmail = customer.email.trim();
+  const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+  const normalizedPlayerId = playerId.trim();
+  const playerIdIsValid = !showPlayerId || normalizedPlayerId.length > 0;
+  const phoneIsValid = customer.phone.trim().length > 0;
+  const checkoutIsValid = playerIdIsValid && emailIsValid && phoneIsValid;
 
   const addToCart = () => {
     onAddToCart();
   };
 
   const submitOrder = () => {
-    if (!customer.name.trim() || !customer.email.trim() || !customer.phone.trim()) {
+    if (!checkoutFieldsVisible) {
+      setCheckoutFieldsVisible(true);
       return;
     }
 
-    if (showPlayerId && customer.playerId.trim().length === 0) {
+    if (!checkoutIsValid) {
       return;
     }
 
     onConfirmOrder({
       ...customer,
-      playerId: customer.playerId.trim(),
+      email: normalizedEmail,
+      phone: customer.phone.trim(),
+      playerId: normalizedPlayerId,
     });
-    setModalOpen(false);
   };
 
   return (
    <main className="min-h-screen bg-[#f5f8ff] text-[#0A1020] pt-24 sm:pt-28 lg:pt-32">
       <SiteNavbar activeView={activeView} />
 
-      <section className="relative overflow-hidden px-4 pb-12 pt-20 sm:px-6 sm:pt-24 lg:px-8 lg:pb-16 lg:pt-28">
+      <section className="relative overflow-hidden px-4 pb-12 pt-22 sm:px-6 sm:pt-32 lg:px-8 lg:pb-16 lg:pt-36">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(20,99,255,0.16),transparent_30%),radial-gradient(circle_at_85%_15%,rgba(7,24,50,0.12),transparent_26%),linear-gradient(180deg,#f7faff_0%,#eef4ff_100%)]" />
  
         <div className="container-main relative">
+
+          <div className="w-full h-20 opacity-0 pointer-events-none"></div>
+
           <motion.section
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-          className="relative mt-16 sm:mt-20 lg:mt-24 overflow-hidden rounded-[28px] border border-white/12 shadow-[0_24px_58px_rgba(5,18,42,0.16)]"
+          className="relative mt-10 sm:mt-20 lg:mt-24 overflow-hidden rounded-[28px] border border-white/12 shadow-[0_24px_58px_rgba(5,18,42,0.16)]"
           style={{ background }}
           >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.24),transparent_52%),linear-gradient(to_top,rgba(0,0,0,0.56),transparent_58%)]" />
@@ -151,25 +169,37 @@ export default function ProductDetailPage({
             <div className="pointer-events-none absolute right-6 top-6 h-16 w-16 rounded-full border border-white/14 bg-white/10 blur-[1px] sm:h-20 sm:w-20" />
             <div className="pointer-events-none absolute bottom-6 left-6 h-12 w-28 rounded-full bg-white/12 blur-2xl sm:h-16 sm:w-36" />
           </motion.section>
+          <div className="w-full h-3 opacity-0 pointer-events-none"></div>
+<motion.section
+  initial={{ opacity: 0, y: 22 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.55, delay: 0.08, ease: "easeOut" }}
+  className="mt-12 grid grid-cols-3 gap-3 sm:mt-14 sm:gap-4 lg:mt-16"
+>
 
-          <motion.section
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.08, ease: "easeOut" }}
-            className="mt-12 grid grid-cols-3 gap-3 sm:mt-14 sm:gap-4 lg:mt-16"
-          >
-            {benefitCards.map((card) => (
-              <article
-                key={card.title}
-                className="flex aspect-square min-h-[92px] flex-col items-center justify-center rounded-[20px] border border-[#dbe8fb] bg-white/92 px-2.5 py-2.5 text-center shadow-[0_14px_34px_rgba(12,32,70,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_44px_rgba(20,99,255,0.14)] sm:min-h-[104px] sm:rounded-[22px] sm:px-3.5 sm:py-3.5"
-              >
-                <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-[14px] bg-[#edf4ff] text-[#1463FF] shadow-[inset_0_0_0_1px_rgba(20,99,255,0.08)] sm:mb-2.5 sm:h-9 sm:w-9 sm:rounded-2xl">
-                  {card.icon}
-                </div>
-                <strong className="block max-w-full text-[8px] font-black leading-[1.25] text-[#0A1020] [overflow-wrap:anywhere] sm:text-[9px]">{card.title}</strong>
-              </article>
-            ))}
-          </motion.section>
+  {benefitCards.map((card) => (
+    <article
+      key={card.title}
+      className="flex min-h-[72px] flex-col items-center justify-center rounded-[20px] border border-[#dbe8fb] bg-white/92 px-3 py-2 text-center shadow-[0_14px_34px_rgba(12,32,70,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_44px_rgba(20,99,255,0.14)] sm:min-h-[78px] sm:px-3.5 sm:py-2.5"
+    >
+      <div className="mb-2 flex h-7 w-7 items-center justify-center rounded-[14px] bg-[#edf4ff] text-[#1463FF] shadow-[inset_0_0_0_1px_rgba(20,99,255,0.08)] sm:h-8 sm:w-8 sm:rounded-2xl">
+        {card.icon}
+      </div>
+
+      <strong className="block max-w-full text-[8px] font-black leading-[1.25] text-[#0A1020] [overflow-wrap:anywhere] sm:text-[9px]">
+        {card.title}
+      </strong>
+    </article>
+  ))}
+</motion.section>
+
+<div className="w-full h-2 opacity-0 pointer-events-none"></div>
+
+<div className="my-8 flex justify-center">
+  <div className="h-px w-[85%] bg-[#d9e2f3]"></div>
+</div>
+
+<div className="w-full h-5 opacity-0 pointer-events-none"></div>
 
           <motion.section
             initial={{ opacity: 0, y: 24 }}
@@ -179,15 +209,74 @@ export default function ProductDetailPage({
           >
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#4d76bd] sm:text-[10px]">Tarifs du produit</span>
-                <h2 className="mt-2 text-2xl font-black text-[#0A1020] sm:text-[2rem]">Choisissez une offre</h2>
+                
+                <h2 className="text-4xl font-black text-[#0A1020] sm:text-[4rem]">
+  {title}
+</h2>
+
+<div className="mt-8 grid gap-y-6 font-medium text-[#24324a]">
+
+  <div className="flex items-center gap-3">
+    <svg
+      className="h-6 w-6 text-[#1463FF]"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      strokeWidth="2"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 8v4l3 3"
+      />
+      <circle cx="12" cy="12" r="9" />
+    </svg>
+
+    <span className="text-sm">
+      Recharge instantanée (Temps de livraison possible)
+    </span>
+  </div>
+
+  <div className="flex items-center gap-3">
+    <svg
+      className="h-6 w-6 text-[#1463FF]"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      strokeWidth="2"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 6v6l4 2"
+      />
+      <circle cx="12" cy="12" r="9" />
+    </svg>
+
+    <span className="text-sm">
+      Délai de livraison : 1 à 15 minutes
+    </span>
+  </div>
+
+</div>
+                
               </div>
-              {activeOffer && (
-                <span className="rounded-full bg-[#edf4ff] px-3 py-1.5 text-[9px] font-black text-[#1463FF] sm:text-[10px]">
-                  Selection: {activeOffer.label}
-                </span>
-              )}
+
+<div className="mx-auto my-6 h-px w-[90%] bg-gray-300"></div>
+              
+              <div className="w-full h-1 opacity-0 pointer-events-none"></div>
+              
+           {activeOffer && (
+  <div className="flex w-full justify-end">
+    <span className="rounded-full bg-[#edf4ff] px-3 py-1.5 text-[9px] font-black text-[#1463FF] sm:text-[10px]">
+      Selection: {activeOffer.label}
+    </span>
+  </div>
+)}
+
             </div>
+
+<div className="w-full h-2 opacity-0 pointer-events-none"></div>
 
             <div className="mt-10 grid gap-4 sm:mt-12 sm:grid-cols-2 xl:grid-cols-3">
               {offers.map((offer, index) => {
@@ -219,244 +308,242 @@ export default function ProductDetailPage({
               })}
             </div>
 
-            <div className="mt-14 h-px w-full bg-[linear-gradient(90deg,rgba(20,99,255,0),rgba(20,99,255,0.22),rgba(20,99,255,0))] sm:mt-16" />
+            
 
-            <div className="mt-8 grid gap-5 sm:mt-10 sm:gap-6 sm:grid-cols-2">
-              <label className="block sm:col-span-2 text-[8px] font-black uppercase tracking-[0.18em] text-[#4d76bd] sm:text-[9px]">
-                Identifiant du joueur
-                <input
-                  value={playerId}
-                  onChange={(event) => {
-                    onPlayerIdChange(event.target.value);
-                    setCustomer((current) => ({ ...current, playerId: event.target.value }));
-                  }}
-                  placeholder="Entrez votre ID"
-                  className="mt-3 h-12 w-full rounded-2xl border border-[#dce7fb] bg-[#fbfdff] px-4 text-[10px] font-bold text-[#0A1020] outline-none transition placeholder:text-[#9caac3] focus:border-[#1463FF] sm:text-[11px]"
-                />
-              </label>
-              <label className="block text-[8px] font-black uppercase tracking-[0.18em] text-[#4d76bd] sm:text-[9px]">
-                Email
-                <input
-                  type="email"
-                  value={customer.email}
-                  onChange={(event) => setCustomer((current) => ({ ...current, email: event.target.value }))}
-                  placeholder="Entrez votre email"
-                  className="mt-3 h-12 w-full rounded-2xl border border-[#dce7fb] bg-[#fbfdff] px-4 text-[10px] font-bold text-[#0A1020] outline-none transition placeholder:text-[#9caac3] focus:border-[#1463FF] sm:text-[11px]"
-                />
-              </label>
-              <label className="block text-[8px] font-black uppercase tracking-[0.18em] text-[#4d76bd] sm:text-[9px]">
-                Numero de telephone
-                <input
-                  type="tel"
-                  value={customer.phone}
-                  onChange={(event) => setCustomer((current) => ({ ...current, phone: event.target.value }))}
-                  placeholder="Entrez votre numero"
-                  className="mt-3 h-12 w-full rounded-2xl border border-[#dce7fb] bg-[#fbfdff] px-4 text-[10px] font-bold text-[#0A1020] outline-none transition placeholder:text-[#9caac3] focus:border-[#1463FF] sm:text-[11px]"
-                />
-              </label>
+<div className="w-full h-3 opacity-0 pointer-events-none"></div>
+
+<div className="my-8 flex justify-center">
+  <div className="h-px w-[85%] bg-[#d9e2f3]"></div>
+</div>
+
+<div className="w-full h-2 opacity-0 pointer-events-none"></div>
+
+<AnimatePresence initial={false}>
+  {checkoutFieldsVisible && (
+    <motion.div
+      initial={{ opacity: 0, height: 0, y: -8 }}
+      animate={{ opacity: 1, height: "auto", y: 0 }}
+      exit={{ opacity: 0, height: 0, y: -8 }}
+      transition={{ duration: 0.28, ease: "easeOut" }}
+      className="overflow-hidden"
+    >
+      <div className="mt-8 sm:mt-10">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#4d76bd]">
+              
+            </p>
+            <p className="mt-1 text-xs font-bold text-[#6B7A99]">
+              Complete ces champs pour continuer.
+            </p>
+          </div>
+
+          {activeOffer && (
+            <span className="rounded-full bg-[#edf4ff] px-3 py-1.5 text-[10px] font-black text-[#1463FF]">
+              Total: {formatEuro(activeOffer.price)}
+            </span>
+          )}
+        </div>
+
+        <div className="w-full h-3 opacity-0 pointer-events-none"></div>
+
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+
+          {/* IDENTIFIANT */}
+          <label className="block sm:col-span-2 text-[8px] font-black uppercase tracking-[0.18em] text-[#4d76bd] sm:text-[9px]">
+            Identifiant du joueur
+            <input
+              value={playerId}
+              aria-invalid={checkoutAttempted && !playerIdIsValid}
+              onChange={(event) => {
+                onPlayerIdChange(event.target.value);
+                setCustomer((current) => ({
+                  ...current,
+                  playerId: event.target.value,
+                }));
+              }}
+              placeholder="Entrez votre ID"
+              className="mt-3 h-12 w-full rounded-2xl border border-[#dce7fb] bg-[#fbfdff] px-4 text-[10px] font-bold text-[#0A1020] outline-none transition placeholder:text-[#9caac3] focus:border-[#1463FF]"
+            />
+            {checkoutAttempted && !playerIdIsValid && (
+              <span className="mt-2 block text-[10px] font-bold text-red-500">
+                Identifiant obligatoire.
+              </span>
+            )}
+          </label>
+
+          {/* EMAIL */}
+          <label className="block text-[8px] font-black uppercase tracking-[0.18em] text-[#4d76bd] sm:text-[9px]">
+            Email
+            <input
+              type="email"
+              value={customer.email}
+              aria-invalid={checkoutAttempted && !emailIsValid}
+              onChange={(event) =>
+                setCustomer((current) => ({
+                  ...current,
+                  email: event.target.value,
+                }))
+              }
+              placeholder="Entrez votre email"
+              className="mt-3 h-12 w-full rounded-2xl border border-[#dce7fb] bg-[#fbfdff] px-4 text-[10px] font-bold text-[#0A1020] outline-none transition placeholder:text-[#9caac3] focus:border-[#1463FF]"
+            />
+            {checkoutAttempted && !emailIsValid && (
+              <span className="mt-2 block text-[10px] font-bold text-red-500">
+                Email invalide.
+              </span>
+            )}
+          </label>
+
+          {/* TELEPHONE */}
+          <label className="block text-[8px] font-black uppercase tracking-[0.18em] text-[#4d76bd] sm:text-[9px]">
+            Numero de telephone
+            <input
+              type="tel"
+              value={customer.phone}
+              aria-invalid={checkoutAttempted && !phoneIsValid}
+              onChange={(event) =>
+                setCustomer((current) => ({
+                  ...current,
+                  phone: event.target.value,
+                }))
+              }
+              placeholder="Entrez votre numero"
+              className="mt-3 h-12 w-full rounded-2xl border border-[#dce7fb] bg-[#fbfdff] px-4 text-[10px] font-bold text-[#0A1020] outline-none transition placeholder:text-[#9caac3] focus:border-[#1463FF]"
+            />
+            {checkoutAttempted && !phoneIsValid && (
+              <span className="mt-2 block text-[10px] font-bold text-red-500">
+                Numero obligatoire.
+              </span>
+            )}
+          </label>
+
+        </div>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
+
+<div className="w-full h-2 opacity-0 pointer-events-none"></div>
+
+
+
+<div className="w-full h-3 opacity-0 pointer-events-none"></div>
+
+<div className="mt-12 grid gap-4 sm:mt-14 sm:gap-5 sm:grid-cols-2">
+  <motion.button
+    type="button"
+    whileHover={{ y: -2 }}
+    whileTap={{ scale: 0.985 }}
+    onClick={addToCart}
+    className={`min-h-[54px] rounded-[22px] border px-5 text-sm font-black transition ${
+      addedToCart
+        ? "border-[#17a36b] bg-[#17a36b] text-white shadow-[0_18px_36px_rgba(23,163,107,0.18)]"
+        : "border-[#d7e4fb] bg-white text-[#0A1020] hover:border-[#1463FF]/35 hover:bg-[#f8fbff]"
+    }`}
+  >
+    {addedToCart ? "Ajoute au panier" : addToCartLabel}
+  </motion.button>
+
+  <motion.button
+  type="button"
+  whileHover={{ y: -2 }}
+  whileTap={{ scale: 0.985 }}
+  onClick={submitOrder}
+  disabled={checkoutFieldsVisible && !checkoutIsValid}
+  className="min-h-[54px] rounded-[22px] bg-[linear-gradient(135deg,#1463FF,#0D4FD6)] px-5 text-sm font-black text-white shadow-[0_18px_36px_rgba(20,99,255,0.26)] transition hover:shadow-[0_22px_42px_rgba(20,99,255,0.34)] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none"
+>
+  {checkoutFieldsVisible && !checkoutIsValid
+    ? "Completez les informations"
+    : payNowLabel}
+</motion.button>
+</div>
+
+<div className="w-full h-12 opacity-0 pointer-events-none"></div>
+
+<div className="mx-auto mt-8 h-px w-full bg-gradient-to-r from-transparent via-[#c7d8f4] to-transparent" />
+
+<div className="w-full h-2 opacity-0 pointer-events-none"></div>
+
+{similarGames.length > 0 && (
+  <section className="mt-8">
+    <div className="flex items-end justify-between gap-3">
+      <div>
+        <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#6B7A99]">
+          {categoryLabel}
+        </p>
+        <h3 className="mt-1 text-xl font-black text-[#0A1020]">
+          Jeux similaires
+        </h3>
+      </div>
+
+      {activeOffer && (
+        <span className="text-xs font-black text-[#1463FF]">
+          Actuel: {activeOffer.label}
+        </span>
+      )}
+    </div>
+
+    <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {similarGames.map((game) => (
+        <article
+          key={game.slug}
+          className="group overflow-hidden rounded-[22px] border border-[#e0e9f8] bg-white shadow-[0_14px_30px_rgba(12,32,70,0.06)] transition duration-300 hover:-translate-y-1 hover:border-[#1463FF]/45 hover:shadow-[0_18px_38px_rgba(20,99,255,0.12)]"
+        >
+          <div
+            className="relative h-28 overflow-hidden"
+            style={{ background: game.background }}
+          >
+            {game.image ? (
+              <Image
+                src={game.image}
+                alt={game.name}
+                fill
+                sizes="(max-width: 640px) 92vw, 30vw"
+                className="object-cover transition duration-500 group-hover:scale-105"
+              />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center text-3xl font-black text-white">
+                {game.logo}
+              </span>
+            )}
+
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_22%,rgba(4,12,28,0.48)_100%)]" />
+          </div>
+
+          <div className="flex items-center justify-between gap-3 p-4">
+            <div className="min-w-0">
+              <strong className="block truncate text-sm font-black text-[#0A1020]">
+                {game.name}
+              </strong>
+              <span className="mt-1 block text-[10px] font-black uppercase tracking-[0.12em] text-[#6B7A99]">
+                {game.currency}
+              </span>
             </div>
 
-            <div className="mt-12 grid gap-4 sm:mt-14 sm:gap-5 sm:grid-cols-2">
-              <motion.button
-                type="button"
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.985 }}
-                onClick={addToCart}
-                className={`min-h-[54px] rounded-[22px] border px-5 text-sm font-black transition ${
-                  addedToCart
-                    ? "border-[#17a36b] bg-[#17a36b] text-white shadow-[0_18px_36px_rgba(23,163,107,0.18)]"
-                    : "border-[#d7e4fb] bg-white text-[#0A1020] hover:border-[#1463FF]/35 hover:bg-[#f8fbff]"
-                }`}
-              >
-                {addedToCart ? "Ajoute au panier" : addToCartLabel}
-              </motion.button>
-              <motion.button
-                type="button"
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.985 }}
-                onClick={syncPlayerIdAndOpenModal}
-                className="min-h-[54px] rounded-[22px] bg-[linear-gradient(135deg,#1463FF,#0D4FD6)] px-5 text-sm font-black text-white shadow-[0_18px_36px_rgba(20,99,255,0.26)] transition hover:shadow-[0_22px_42px_rgba(20,99,255,0.34)]"
-              >
-                {payNowLabel}
-              </motion.button>
-            </div>
-          </motion.section>
+            <Link
+              href={`/jeux/${game.slug}`}
+              className="shrink-0 rounded-full bg-[#edf4ff] px-4 py-2 text-[10px] font-black text-[#1463FF] transition hover:bg-[#1463FF] hover:text-white"
+            >
+              Voir
+            </Link>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+)}
 
-          <HomeFooter />
+</motion.section>
+
         </div>
       </section>
-
-      <AnimatePresence>
-        {modalOpen && activeOffer && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-[#031022]/55 px-4 py-8 backdrop-blur-sm"
-            onClick={() => setModalOpen(false)}
-          >
-            <motion.section
-              initial={{ opacity: 0, y: 28, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 18, scale: 0.98 }}
-              transition={{ duration: 0.26, ease: "easeOut" }}
-              onClick={(event) => event.stopPropagation()}
-              className="w-full max-w-[720px] overflow-hidden rounded-[30px] border border-white/20 bg-white shadow-[0_28px_80px_rgba(3,16,34,0.35)]"
-            >
-              <div className="border-b border-[#e7eefb] bg-[linear-gradient(180deg,#f7faff_0%,#ffffff_100%)] px-5 py-5 sm:px-7">
-                <span className="text-[11px] font-black uppercase tracking-[0.18em] text-[#4d76bd]">Fenetre de paiement</span>
-                <h3 className="mt-2 text-2xl font-black text-[#0A1020]">Informations de commande</h3>
-              </div>
-
-              <div className="grid gap-6 px-5 py-5 sm:px-7 sm:py-6 lg:grid-cols-[.92fr_1.08fr]">
-                <div className="rounded-[24px] border border-[#e4ecfa] bg-[#f8fbff] p-5">
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#6B7A99]">Commande</p>
-                  <div className="mt-4 space-y-4">
-                    <SummaryRow label="Produit" value={title} />
-                    <SummaryRow label="Offre selectionnee" value={activeOffer.label} />
-                    <SummaryRow label="Prix total" value={formatEuro(activeOffer.price)} highlight />
-                    {showPlayerId && <SummaryRow label="ID joueur" value={customer.playerId || playerId || "A renseigner"} />}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#4d76bd]">Informations client</p>
-                  <div className="mt-4 grid gap-3">
-                    <Field
-                      label="Nom"
-                      value={customer.name}
-                      onChange={(value) => setCustomer((current) => ({ ...current, name: value }))}
-                    />
-                    <Field
-                      label="Email"
-                      value={customer.email}
-                      type="email"
-                      onChange={(value) => setCustomer((current) => ({ ...current, email: value }))}
-                    />
-                    <Field
-                      label="Numero de telephone"
-                      value={customer.phone}
-                      onChange={(value) => setCustomer((current) => ({ ...current, phone: value }))}
-                    />
-                    {showPlayerId && (
-                      <Field
-                        label="ID du joueur"
-                        value={customer.playerId}
-                        onChange={(value) => {
-                          setCustomer((current) => ({ ...current, playerId: value }));
-                          onPlayerIdChange(value);
-                        }}
-                      />
-                    )}
-                  </div>
-
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    <button
-                      type="button"
-                      onClick={() => setModalOpen(false)}
-                      className="min-h-[50px] rounded-[20px] border border-[#d7e4fb] bg-white px-5 text-sm font-black text-[#0A1020] transition hover:bg-[#f8fbff]"
-                    >
-                      Annuler
-                    </button>
-                    <button
-                      type="button"
-                      onClick={submitOrder}
-                      disabled={
-                        !customer.name.trim() ||
-                        !customer.email.trim() ||
-                        !customer.phone.trim() ||
-                        (showPlayerId && !customer.playerId.trim())
-                      }
-                      className="min-h-[50px] rounded-[20px] bg-[linear-gradient(135deg,#1463FF,#0D4FD6)] px-5 text-sm font-black text-white shadow-[0_18px_36px_rgba(20,99,255,0.26)] transition disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      Valider la commande
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.section>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </main>
   );
 }
+<div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
 
-function SummaryRow({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
-  return (
-    <div className="flex items-start justify-between gap-3 border-b border-[#e8eef9] pb-3 last:border-b-0 last:pb-0">
-      <span className="text-sm font-bold text-[#6B7A99]">{label}</span>
-      <span className={`text-right text-sm font-black ${highlight ? "text-[#1463FF]" : "text-[#0A1020]"}`}>{value}</span>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-}) {
-  return (
-    <label className="block text-[11px] font-black uppercase tracking-[0.18em] text-[#4d76bd]">
-      {label}
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-12 w-full rounded-2xl border border-[#dce7fb] bg-[#fbfdff] px-4 text-sm font-bold text-[#0A1020] outline-none transition focus:border-[#1463FF]"
-      />
-    </label>
-  );
-}
-
-function HomeFooter() {
-  return (
-    <footer className="site-footer mt-8">
-      <div className="footer-intro">
-        <a className="brand-lockup footer-brand" href="#" aria-label="Nexy Shop">
-          <span>
-            <strong>Nexy <b>Shop</b></strong>
-            <small>Recharges jeux & cartes cadeaux</small>
-          </span>
-        </a>
-        <p>Livraison rapide, paiement securise et support disponible quand tu en as besoin.</p>
-        <p className="site-copyright">© 2026 NEXY SHOP - Tous droits réservés</p>
-      </div>
-
-      <div className="footer-panel footer-service-panel">
-        <div className="footer-panel-head">
-          <span><HeadsetIcon /></span>
-          <strong>Info service client</strong>
-        </div>
-        <p>Le service client est gere par un assistant humain, disponible de 10h a 18h.</p>
-        <a className="footer-contact-link" href="tel:+22898309566">
-          <PhoneIcon />
-          <span>+228 98309566</span>
-        </a>
-      </div>
-
-      <div className="footer-panel footer-legal-panel">
-        <div className="footer-panel-head">
-          <span><LockIcon /></span>
-          <strong>Légal</strong>
-        </div>
-        <nav className="footer-legal-links" aria-label="Liens legaux">
-          <a href="#">Mention légale</a>
-          <a href="#">Confidentialité</a>
-          <a href="#">Politique de remboursement</a>
-          <a href="#">Cookie</a>
-          <a className="footer-help-link" href="/faq">Aide</a>
-        </nav>
-      </div>
-    </footer>
-  );
-}
 
 function formatEuro(value: number) {
   return new Intl.NumberFormat("fr-FR", {
