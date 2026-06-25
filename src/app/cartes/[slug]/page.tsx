@@ -1,20 +1,35 @@
 "use client";
 
-import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import ProductDetailPage from "@/components/ProductDetailPage";
+import SiteNavbar from "@/components/SiteNavbar";
 import { getGiftCard } from "@/lib/data";
 import { trackProductEvent } from "@/lib/popularity";
 import { useCartStore } from "@/lib/store";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
-export default function GiftCardPage() {
+const giftCardImages: Record<string, string> = {
+  "google-play": "/play-store-card.png",
+  netflix: "/image copy.png",
+  playstation: "/image copy 4.png",
+  xbox: "/image copy 3.png",
+  spotify: "/image copy 11.png",
+  "pubg-mobile-gift": "/image copy 13.png",
+};
+
+function resolveCategory(name: string) {
+  if (name.includes("Spotify") || name.includes("Netflix")) return "Abonnement";
+  if (name.includes("Play") || name.includes("Xbox") || name.includes("PUBG")) return "Produit digital";
+  return "Carte cadeau";
+}
+
+export default function GiftCardDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const card = getGiftCard(slug);
-  const addItem = useCartStore((s) => s.addItem);
-  const [selected, setSelected] = useState<number | null>(null);
+  const addItem = useCartStore((state) => state.addItem);
+  const [selectedOffer, setSelectedOffer] = useState(0);
+  const [accountId, setAccountId] = useState("");
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
@@ -22,109 +37,90 @@ export default function GiftCardPage() {
     trackProductEvent("giftcard", card.slug, "visit");
   }, [card]);
 
+  useEffect(() => {
+    setSelectedOffer(0);
+    setAccountId("");
+    setAdded(false);
+  }, [slug]);
+
   if (!card) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-[#f5f7fb]">
-        <p className="text-xl font-bold text-[#0A1020]">Carte introuvable.</p>
-        <button onClick={() => router.push("/")} className="mt-6 rounded-2xl bg-[#1463FF] px-6 py-3 text-sm font-bold text-white">
-          Retour à l&apos;accueil
-        </button>
+      <main className="min-h-screen bg-[#f5f8ff]">
+        <SiteNavbar activeView="cards" />
+        <section className="mx-auto flex min-h-[70vh] w-full max-w-[880px] flex-col items-center justify-center px-6 text-center">
+          <h1 className="text-3xl font-black text-[#0A1020]">Produit introuvable</h1>
+          <p className="mt-3 max-w-xl text-sm font-semibold text-[#6B7A99]">
+            Le produit demande n&apos;est plus disponible ou l&apos;adresse est incorrecte.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push("/cartes")}
+            className="mt-6 rounded-2xl bg-[#1463FF] px-6 py-3 text-sm font-black text-white"
+          >
+            Retour au catalogue cartes
+          </button>
+        </section>
       </main>
     );
   }
 
-  function handleAddToCart() {
-    if (selected === null) return;
-    const denom = card!.denominations[selected];
-    addItem({
-      productId: card!.slug,
-      name: card!.name,
-      denomination: denom.label,
-      price: denom.price,
-      type: "giftcard",
-      image: card!.image,
-      art: card!.bg,
-    });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
-  }
-
-  return (
-    <main className="min-h-screen bg-[#f5f7fb]">
-      <Navbar />
-
-      {/* Hero */}
-      <div className="relative h-[260px] overflow-hidden pt-[80px]" style={{ background: card.bg }}>
-        {card.image && (
-          <Image
-            src={card.image}
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="relative flex h-full items-end px-6 pb-8 sm:px-12">
-          <div>
-            <button onClick={() => router.push("/")} className="mb-3 flex items-center gap-2 text-xs font-bold text-white/60 hover:text-white">
-              ← Retour
-            </button>
-            <h1 className="text-3xl font-black text-white drop-shadow-lg sm:text-4xl">{card.name}</h1>
-            <p className="mt-1 text-sm font-medium text-white/70">{card.description}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="container-main px-4 py-12 sm:px-6 lg:px-8">
-        <div className="rounded-[28px] bg-white p-8 shadow-[0_20px_60px_rgba(12,32,70,0.08)] ring-1 ring-[#e7edf7]">
-          <h2 className="mb-2 text-lg font-black text-[#0A1020]">Choisir le montant</h2>
-          <p className="mb-8 text-sm text-[#6B7A99]">Sélectionne une option puis ajoute au panier</p>
-
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {card.denominations.map((denom, i) => (
-              <button
-                key={i}
-                onClick={() => setSelected(i)}
-                className={`flex flex-col items-center gap-2 rounded-2xl border-2 px-4 py-5 text-center transition ${
-                  selected === i
-                    ? "border-[#1463FF] bg-[#EBF1FF] text-[#1463FF]"
-                    : "border-[#e7edf7] bg-[#f8fbff] text-[#0A1020] hover:border-[#1463FF]/40"
-                }`}
-              >
-                <span className="text-sm font-black">{denom.label}</span>
-                <span className="text-xs font-bold text-[#6B7A99]">{denom.price.toFixed(2)}€</span>
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
-            <button
-              onClick={handleAddToCart}
-              disabled={selected === null}
-              className={`flex-1 rounded-2xl py-4 text-sm font-black transition sm:flex-none sm:px-10 ${
-                selected === null
-                  ? "cursor-not-allowed bg-[#e7edf7] text-[#aab4c8]"
-                  : added
-                  ? "bg-green-500 text-white"
-                  : "bg-[#1463FF] text-white hover:bg-[#0D4FD6]"
-              }`}
-            >
-              {added ? "✓ Ajouté au panier !" : selected !== null ? `Ajouter — ${card.denominations[selected].price.toFixed(2)}€` : "Sélectionne un montant"}
-            </button>
-            <button
-              onClick={() => router.push("/panier")}
-              className="rounded-2xl border-2 border-[#e7edf7] px-8 py-4 text-sm font-bold text-[#0A1020] hover:border-[#1463FF]/40 sm:flex-none"
-            >
-              Voir le panier
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <Footer />
-    </main>
+  const offers = useMemo(
+    () => card.denominations.map((entry, index) => ({
+      label: entry.label,
+      price: entry.price,
+      caption: selectedOffer === index ? "Active" : "Choisir",
+    })),
+    [card.denominations, selectedOffer]
   );
+
+  const pushSelectedOffer = () => {
+    const selected = card.denominations[selectedOffer] ?? card.denominations[0];
+
+    addItem({
+      productId: card.slug,
+      name: card.name,
+      denomination: selected.label,
+      price: selected.price,
+      type: "giftcard",
+      image: card.image ?? giftCardImages[card.slug],
+      art: card.bg,
+      delivery: accountId.trim() ? { playerId: accountId.trim() } : undefined,
+    });
+  };
+
+  const handleAddToCart = () => {
+    pushSelectedOffer();
+    setAdded(true);
+    window.setTimeout(() => setAdded(false), 1600);
+  };
+
+  const handleConfirmOrder = () => {
+    pushSelectedOffer();
+    router.push("/panier");
+  };
+
+ return (
+  <div className="pt-12 sm:pt-16 lg:pt-20">
+    <ProductDetailPage
+      activeView="cards"
+      categoryLabel={resolveCategory(card.name)}
+      productTypeLabel="Produit digital"
+      title={card.name}
+      description={card.description}
+      image={card.image ?? giftCardImages[card.slug]}
+      background={card.bg}
+      offers={offers}
+      selectedOffer={selectedOffer}
+      onSelectOffer={setSelectedOffer}
+      playerId={accountId}
+      onPlayerIdChange={setAccountId}
+      onAddToCart={handleAddToCart}
+      onConfirmOrder={handleConfirmOrder}
+      addToCartLabel="Ajouter au panier"
+      payNowLabel="Payer maintenant"
+      addedToCart={added}
+      showPlayerId
+    />
+  </div>
+);
 }
